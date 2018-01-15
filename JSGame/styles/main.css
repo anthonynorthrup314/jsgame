@@ -1,0 +1,16 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: black;
+}
+
+.JSGame {
+    margin: 0;
+    padding: 0;
+}
+
+.JSGame canvas {
+    margin: 5px 0 0 5px;
+    padding: 0;
+    background-color: white;
+}
