@@ -1,4 +1,5 @@
 /// <reference path="JSGame/scripts/Game.ts"/>
+/// <reference path="JSGame/scripts/Sprite.ts"/>
 
 class App extends JSGame.Game {
     constructor() {

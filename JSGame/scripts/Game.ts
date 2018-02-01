@@ -95,6 +95,7 @@ namespace JSGame {
             // Update and draw
             this.update(delta);
             this.draw();
+            this.test();
 
             // Request next frame
             this.frameRequest = requestAnimationFrame(this.tick.bind(this));
@@ -122,6 +123,18 @@ namespace JSGame {
             this.ctx.textBaseline = "top";
             this.ctx.fillText(`Viewport: ${Math.round(this.view_wport)} by ${Math.round(this.view_hport)} @ (${Math.round(this.view_xport)}, ${Math.round(this.view_yport)})`, this.view_xport, this.view_yport);
             this.ctx.restore();
+        }
+
+        private test(): void {
+            let asdf: Sprite = new Sprite("blue", 200, 100);
+            asdf.xoffset = 70;
+            asdf.yoffset = 0;
+            asdf.kind = SpriteKind.Diamond;
+
+            if (asdf.contains(10, 10))
+                asdf.color = "purple";
+
+            asdf.drawMask(this.ctx, this.view_xport, this.view_yport);
         }
     }
 }
