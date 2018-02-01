@@ -1,3 +1,5 @@
+/// <reference path="./Character.ts" />
+/// <reference path="./Color.ts" />
 /// <reference path="./Sprite.ts" />
 
 namespace JSGame {
@@ -128,15 +130,20 @@ namespace JSGame {
         }
 
         private test(): void {
-            let asdf: Sprite = new Sprite("blue", 200, 100);
+            let asdf: Sprite = new Sprite(Colors.c_blue, 200, 100);
             asdf.xoffset = 70;
             asdf.yoffset = 0;
             asdf.kind = SpriteKind.Diamond;
+            
+            let a123: Character = new Character(this.view_xport, this.view_yport, asdf);
+            a123.x += 20;
+            a123.y += 20;
+            a123.angle = 0;
 
-            if (asdf.contains(10, 10))
-                asdf.color = "purple";
+            if (a123.contains(this.view_xport + 30, this.view_yport + 30))
+                a123.color = Colors.c_purple;
 
-            asdf.drawMask(this.ctx, this.view_xport, this.view_yport);
+            a123.draw(this.ctx);
         }
     }
 }

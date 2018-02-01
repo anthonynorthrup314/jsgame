@@ -1,3 +1,5 @@
+/// <reference path="./Color.ts" />
+
 namespace JSGame {
     export enum SpriteKind {
         BoundingBox,
@@ -24,7 +26,9 @@ namespace JSGame {
     }
 
     export class Sprite {
-        public color: string;
+        // TODO: Have actual image data
+        // TODO: Overhaul variable access
+        public color: Color;
         public width: number;
         public height: number;
         public xoffset: number;
@@ -38,7 +42,7 @@ namespace JSGame {
             return BoundingBox.FromRect(0, 0, this.width, this.height);
         }
 
-        constructor(color: string, width: number, height: number) {
+        constructor(color: Color, width: number, height: number) {
             this.color = color;
             this.width = width;
             this.height = height;
@@ -79,22 +83,23 @@ namespace JSGame {
             }
         }
 
-        public drawMask(ctx: CanvasRenderingContext2D, x: number, y: number) {
+        // TODO: Remove drawMask method
+        public drawMask(ctx: CanvasRenderingContext2D, color: Color = Colors.c_white) {
             // Calculate bounds
             var bbox = this.GetBbox(),
-                left = x - this.xoffset + bbox.left,
-                top = y - this.yoffset + bbox.top,
-                right = x - this.xoffset + bbox.right,
-                bottom = y - this.yoffset + bbox.bottom;
+                left = -this.xoffset + bbox.left,
+                top = -this.yoffset + bbox.top,
+                right = -this.xoffset + bbox.right,
+                bottom = -this.yoffset + bbox.bottom;
             
             // Draw collision shape
             ctx.save();
-            ctx.fillStyle = this.color;
+            ctx.strokeStyle = this.color.multiply(color).as_string;
             switch (this.kind) {
                 case SpriteKind.Disk:
                     ctx.beginPath();
                     ctx.ellipse(left + this.width / 2, top + this.height / 2, this.width / 2, this.height / 2, 0, 0, 2 * Math.PI, false);
-                    ctx.fill();
+                    ctx.stroke();
                     break;
                 case SpriteKind.Diamond:
                     ctx.beginPath();
@@ -102,20 +107,24 @@ namespace JSGame {
                     ctx.lineTo(left + this.width / 2, top);
                     ctx.lineTo(left, top + this.height / 2);
                     ctx.lineTo(left + this.width / 2, bottom);
-                    ctx.fill();
+                    ctx.lineTo(right, top + this.height / 2);
+                    ctx.stroke();
                     break;
                 default: // bounding box
-                    ctx.fillRect(left, top, this.width, this.height);
+                    ctx.strokeRect(left, top, this.width, this.height);
             }
             ctx.restore();
         }
 
-        public draw(ctx:CanvasRenderingContext2D, x: number, y: number) {
+        public draw(ctx:CanvasRenderingContext2D, color: Color = Colors.c_white) {
             // Draw rectangle
             ctx.save();
-            ctx.fillStyle = this.color;
-            ctx.fillRect(x - this.xoffset, y - this.yoffset, this.width, this.height);
+            ctx.fillStyle = this.color.multiply(color).as_string;
+            ctx.fillRect(-this.xoffset, -this.yoffset, this.width, this.height);
             ctx.restore();
         }
+
+        // TODO: Have more complex drawing methods, draw_sprite_general
+        // TODO: Draw image with color blending (possibly difficult)
     }
 }
