@@ -7,6 +7,12 @@ namespace JSGame {
         Diamond
     }
 
+    /* TODO: Decide on just box/circle or add extra shapes. If extra shapes,
+     * collision detection will get slow and complicated. Also, possibly
+     * random polygon mask specified by points? "Only" need to have polygon to
+     * polygon collision to support that (force closed, could be concave).
+     */
+
     export class BoundingBox {
         public left: number;
         public top: number;
