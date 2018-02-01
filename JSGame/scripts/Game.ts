@@ -1,3 +1,5 @@
+/// <reference path="./Sprite.ts" />
+
 namespace JSGame {
     export class Game {
         private root: HTMLDivElement;
