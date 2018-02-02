@@ -143,6 +143,28 @@ namespace JSGame {
             this.width = width;
             this.height = height;
         }
+
+        public test_collisions(): void {
+            for (let i = 0; i < this.pointers.length; i++) {
+                let p = this.pointers[i].next;
+                while (p != null) {
+                    if (this.is_touching(p.item)) {
+                        this.collision(p.item);
+                        p.item.collision(this);
+                    }
+                    p = p.next;
+                }
+            }
+        }
+
+        public is_touching(other: Item): boolean {
+            // TODO: Actually check
+            return false;
+        }
+
+        public collision(other: Item): void {
+            // TODO: Handle collisions
+        }
     }
 
     export class Pointer {
