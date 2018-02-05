@@ -22,6 +22,14 @@ namespace JSGame {
             this.int = (this.blue << 16) + (this.green << 8) + this.red;
         }
 
+        public static random(min: number = 0, max: number = 255): Color {
+            return new Color(
+                min + Math.floor(Math.random() * (max - min + 1)),
+                min + Math.floor(Math.random() * (max - min + 1)),
+                min + Math.floor(Math.random() * (max - min + 1))
+            );
+        }
+
         public static from_int(int: number): Color {
             int = Math.max(0, Math.min(Math.round(int), 0xFFFFFF));
             return new Color(int & 0xFF, (int >> 8) & 0xFF, (int >> 16) & 0xFF);
