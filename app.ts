@@ -65,6 +65,28 @@ class MovingCircle extends MovingBlock {
         }
     }
 }
+class Person extends JSGame.Item {
+    public speed: number;
+
+    constructor(game: JSGame.Game, creation_code?: (self: Person) => void) {
+        super(game, creation_code);
+        this.width = 50;
+        this.height = 50;
+        this.color = JSGame.Colors.c_red;
+        this.speed = 0;
+    }
+
+    public create(): void {
+        super.create();
+        this.speed = 5;
+    }
+    public step(): void {
+        let lr = +this.game.input.keyboard_check(JSGame.ord('D')) - +this.game.input.keyboard_check(JSGame.ord('A')),
+            ud = +this.game.input.keyboard_check(JSGame.ord('S')) - +this.game.input.keyboard_check(JSGame.ord('W'));
+        this.x = Math.max(0, Math.min(this.x + this.speed * lr, this.game.width - this.width));
+        this.y = Math.max(0, Math.min(this.y + this.speed * ud, this.game.height - this.height));
+    }
+}
 
 window.addEventListener("load", (_) => {
     let game: JSGame.Game = new JSGame.Game();
@@ -73,5 +95,6 @@ window.addEventListener("load", (_) => {
         self.y = (game.height - self.height) * 0.5;
     });
     game.instance_add(MovingCircle, 0, 0);
+    game.instance_add(Person, 0, 0);
     game.run();
 });

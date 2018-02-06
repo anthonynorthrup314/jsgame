@@ -50,6 +50,10 @@ namespace JSGame {
         private frameDelta: number;
 
         // Game info
+        private _input: InputManager;
+        public get input() {
+            return this._input;
+        }
         private running: boolean;
         private items: Array<Item>;
 
@@ -60,6 +64,9 @@ namespace JSGame {
 
             // Setup resize listener
             window.addEventListener("resize", this.resize.bind(this));
+
+            // Setup input manager
+            this._input = new InputManager(this.canvas);
 
             // Timing
             this.frameRequest = null;
@@ -104,9 +111,15 @@ namespace JSGame {
             let width: number = Math.max(10, window.innerWidth - 10),
                 height: number = Math.max(10, window.innerHeight - 10);
             
+            // Save image
+            let imagedata = this.ctx.getImageData(0, 0, this.width, this.height);
+
             // Resize canvas
             this.canvas.width = width;
             this.canvas.height = height;
+
+            // Restore image
+            this.ctx.putImageData(imagedata, 0, 0);
 
             // Setup viewport
             if (this.aspectRatio === null) {
@@ -140,14 +153,14 @@ namespace JSGame {
             this.frameRequest = requestAnimationFrame(this.tick.bind(this));
         }
 
-        private tick(time: number): void {
+        private tick(): void {
              // Calculate delta time
-            var time = window.performance.now(),
+            let time = window.performance.now(),
                 delta = (time - this.frameTime) * 0.001;
             this.frameTime = time;
 
             // Limit to 60 FPS
-            var sixtieth = 1.0 / 60.0;
+            let sixtieth = 1.0 / 60.0;
             this.frameDelta = Math.min(this.frameDelta + delta, 4 * sixtieth);
             while (this.frameDelta >= sixtieth) {
                 this.update();
@@ -162,7 +175,7 @@ namespace JSGame {
         }
 
         private update(): void {
-            var length = this.items.length,
+            let length = this.items.length,
                 i = 0,
                 del = function() {
                     this.items[i].destroy();
@@ -170,29 +183,30 @@ namespace JSGame {
                     i--;
                     length--;
                 }.bind(this);
-            for (var i = 0; i < length; i++) {
+            this.input.step();
+            for (i = 0; i < length; i++) {
                 if (this.items[i].is_alive)
-                this.items[i].step_begin();
+                    this.items[i].step_begin();
                 if (!this.items[i].is_alive)
-                del();
+                    del();
             }
-            for (var i = 0; i < length; i++) {
+            for (i = 0; i < length; i++) {
                 if (this.items[i].is_alive)
-                this.items[i].step();
+                    this.items[i].step();
                 if (!this.items[i].is_alive)
-                del();
+                    del();
             }
-            for (var i = 0; i < length; i++) {
+            for (i = 0; i < length; i++) {
                 if (this.items[i].is_alive)
-                this.items[i].step_end();
+                    this.items[i].step_end();
                 if (!this.items[i].is_alive)
-                del();
+                    del();
             }
             // Clean up
             length = this.items.length;
-            for (var i = 0; i < length; i++)
+            for (i = 0; i < length; i++)
                 if (!this.items[i].is_alive)
-                del();
+                    del();
         }
 
         private draw(): void {
@@ -205,14 +219,14 @@ namespace JSGame {
             this._ctx.fillRect(this.view_xport, this.view_yport, this.view_wport, this.view_hport);
             this._ctx.restore();
 
-            var sorted = Helpers.sort_by_depth(this.items);
-            for (var item of sorted)
+            let sorted = Helpers.sort_by_depth(this.items);
+            for (let item of sorted)
                 if (item.visible)
                 item.draw_begin();
-            for (var item of sorted)
+            for (let item of sorted)
                 if (item.visible)
                 item.draw();
-            for (var item of sorted)
+            for (let item of sorted)
                 if (item.visible)
                 item.draw_end();
 
@@ -222,14 +236,14 @@ namespace JSGame {
         public instance_add<T extends Item>(cls: new (game: Game, creation_code?: (self: T) => void) => T, x: number, y: number, creation_code?: (self: T) => void): T {
             if (this.running)
                 throw new Error("Can not add instance after starting, use instance_create instead");
-            var item = new cls(this, creation_code);
+            let item = new cls(this, creation_code);
             item.x = x;
             item.y = y;
             this.items.push(item);
             return item;
         }
         public instance_create<T extends Item>(cls: new (game: Game, creation_code?: (self: T) => void) => T, x: number, y: number): T {
-            var item = new cls(this);
+            let item = new cls(this);
             item.x = x;
             item.y = y;
             this.items.push(item);
@@ -238,10 +252,10 @@ namespace JSGame {
         }
 
         public get_by_id<T extends Item>(id: number): T {
-            var L = 0,
+            let L = 0,
                 R = this.items.length - 1;
             while (L <= R) {
-                var m = (L + R) * 0.5,
+                let m = (L + R) * 0.5,
                     item = this.items[m];
                 if (item.id < id)
                 L = m + 1;
@@ -254,26 +268,26 @@ namespace JSGame {
         }
 
         public position_empty(x: number, y: number): boolean {
-            for (var other of this.items)
+            for (let other of this.items)
                 if (other.contains_point(x, y))
                     return false;
             return true;
         }
         public position_meeting<T extends Item>(x: number, y: number, cls: new (game: Game, creation_code?: (self: T) => void) => T): boolean {
-            for (var other of this.items)
+            for (let other of this.items)
                 if (other instanceof cls)
                     if (other.contains_point(x, y))
                         return false;
             return true;
         }
         public place_empty<T extends Item>(item: T, x: number, y: number): boolean {
-            for (var other of this.items)
+            for (let other of this.items)
                 if (item.id != other.id && item.is_colliding_at(other, x, y))
                     return false;
             return true;
         }
         public place_meeting<T1 extends Item, T2 extends Item>(item: T1, x: number, y: number, cls: new (game: Game, creation_code?: (self: T2) => void) => T2): boolean {
-            for (var other of this.items)
+            for (let other of this.items)
                 if (other instanceof cls)
                     if (item.id != other.id && item.is_colliding_at(other, x, y))
                         return true;
@@ -444,5 +458,253 @@ namespace JSGame {
             // Separating Axis Theorem (modified)
             return (xmax - xmin <= w1 + w2) && (ymax - ymin <= h1 + h2);
         }
+    }
+
+    export class InputManager {
+        private canvas: HTMLCanvasElement;
+
+        private keys: Map<number, boolean>;
+        private keys_prev: Map<number, boolean>;
+        public keyboard_string: string;
+
+        private buttons: Map<number, boolean>;
+        private buttons_prev: Map<number, boolean>;
+
+        private _mouse_x: number;
+        public get mouse_x() {
+            return this._mouse_x;
+        }
+        private _mouse_y: number;
+        public get mouse_y() {
+            return this._mouse_y;
+        }
+        private mouse_wheel: number;
+        private mouse_wheel_step: number;
+
+        constructor(canvas: HTMLCanvasElement) {
+            this.canvas = canvas;
+
+            this.keys = new Map<number, boolean>();
+            this.keys_prev = new Map<number, boolean>();
+            this.keyboard_string = "";
+            this.buttons = new Map<number, boolean>();
+            this.buttons_prev = new Map<number, boolean>();
+            this._mouse_x = 0;
+            this._mouse_y = 0;
+            this.mouse_wheel = 0;
+            this.mouse_wheel_step = 0;
+
+            document.addEventListener("keydown", this.key_down.bind(this));
+            document.addEventListener("keyup", this.key_up.bind(this));
+            document.addEventListener("focusout", this.focus_out.bind(this));
+            document.addEventListener("mousedown", this.mouse_down.bind(this));
+            document.addEventListener("mouseup", this.mouse_up.bind(this));
+            document.addEventListener("mosuemove", this.mouse_move.bind(this));
+            document.addEventListener("mouseleave", this.mouse_leave.bind(this));
+            document.addEventListener("contextmenu", this.context_menu.bind(this));
+            document.addEventListener("wheel", this.wheel.bind(this));
+        }
+
+        private key_down(ev: KeyboardEvent): boolean {
+            this.keys.set(ev.keyCode, true);
+            ev.preventDefault();
+            return false;
+        }
+        private key_up(ev: KeyboardEvent): boolean {
+            // Keyboard string
+            if (ev.key.length == 1)
+                this.keyboard_string += ev.key;
+            else if (ev.key == "Backspace")
+                this.keyboard_string = this.keyboard_string.substring(0, Math.max(0, this.keyboard_string.length - 1));
+            else if (ev.key == "Enter")
+                this.keyboard_string += "\n";
+            // Usual handling
+            this.keys.set(ev.keyCode, false);
+            ev.preventDefault();
+            return false;
+        }
+        private focus_out(ev: FocusEvent): boolean {
+            // Clear all IO
+            for (let pair of this.keys)
+                this.keys.set(pair[0], false);
+            for (let pair of this.buttons)
+                this.buttons.set(pair[0], false);
+            ev.preventDefault();
+            return false;
+        }
+        private mouse_down(ev: MouseEvent): boolean {
+            this.keys.set(ev.button, true);
+            ev.preventDefault();
+            return false;
+        }
+        private mouse_up(ev: MouseEvent): boolean {
+            this.keys.set(ev.button, false);
+            ev.preventDefault();
+            return false;
+        }
+        private mouse_move(ev: MouseEvent): boolean {
+            let rect = this.canvas.getBoundingClientRect();
+            this._mouse_x = ev.clientX - rect.left;
+            this._mouse_y = ev.clientY - rect.top;
+            ev.preventDefault();
+            return false;
+        }
+        private mouse_leave(ev: MouseEvent): boolean {
+            // Clear all buttons
+            for (let pair of this.buttons)
+                this.buttons.set(pair[0], false);
+            ev.preventDefault();
+            return false;
+        }
+        private context_menu(ev: MouseEvent): boolean {
+            ev.preventDefault();
+            return false;
+        }
+        private wheel(ev: MouseWheelEvent): boolean {
+            this.mouse_wheel += ev.deltaY;
+            ev.preventDefault();
+            return false;
+        }
+
+        public step(): void {
+            // Update keys
+            this.keys_prev.clear();
+            for (let pair of this.keys)
+                this.keys_prev.set(pair[0], pair[1]);
+            // Update buttons
+            this.buttons_prev.clear();
+            for (let pair of this.buttons)
+                this.buttons_prev.set(pair[0], pair[1]);
+            // Update scroll wheel
+            this.mouse_wheel_step = this.mouse_wheel;
+            this.mouse_wheel = 0;
+        }
+
+        public keyboard_check(key: number): boolean {
+            if (key == Constants.vk_nokey || key == Constants.vk_anykey) {
+                let goal: boolean = key == Constants.vk_anykey;
+                for (let pair of this.keys)
+                    if (pair[1] != goal)
+                        return false;
+                return true;
+            }
+            return this.keys.get(key) == true;
+        }
+        public keyboard_check_pressed(key: number): boolean {
+            if (key == Constants.vk_nokey || key == Constants.vk_anykey) {
+                for (let pair of this.keys)
+                    if (pair[1] == true && this.keys_prev.get(pair[0]) != true)
+                        return key == Constants.vk_anykey;
+                return key == Constants.vk_nokey;
+            }
+            return this.keys.get(key) == true && this.keys_prev.get(key) != true;
+        }
+        public keyboard_check_released(key: number): boolean {
+            if (key == Constants.vk_nokey || key == Constants.vk_anykey) {
+                for (let pair of this.keys)
+                    if (pair[1] != true && this.keys_prev.get(pair[0]) == true)
+                        return key == Constants.vk_anykey;
+                return key == Constants.vk_nokey;
+            }
+            return this.keys.get(key) != true && this.keys_prev.get(key) == true;
+        }
+
+        public mouse_check_button(numb: number): boolean {
+            if (numb == Constants.mb_none || numb == Constants.mb_any) {
+                let goal: boolean = numb == Constants.mb_any;
+                for (let pair of this.buttons)
+                    if (pair[1] != goal)
+                        return false;
+                return true;
+            }
+            return this.buttons.get(numb) == true;
+        }
+        public mouse_check_button_pressed(numb: number): boolean {
+            if (numb == Constants.mb_none || numb == Constants.mb_any) {
+                for (let pair of this.buttons)
+                    if (pair[1] == true && this.buttons_prev.get(pair[0]) != true)
+                        return numb == Constants.mb_any;
+                return numb == Constants.mb_none;
+            }
+            return this.buttons.get(numb) == true && this.buttons_prev.get(numb) != true;
+        }
+        public mouse_check_button_released(numb: number): boolean {
+            if (numb == Constants.mb_none || numb == Constants.mb_any) {
+                for (let pair of this.buttons)
+                    if (pair[1] != true && this.buttons_prev.get(pair[0]) == true)
+                        return numb == Constants.mb_any;
+                return numb == Constants.mb_none;
+            }
+            return this.buttons.get(numb) != true && this.buttons_prev.get(numb) == true;
+        }
+
+        public mouse_wheel_up(): boolean {
+            return this.mouse_wheel_step < 0;
+        }
+        public mouse_wheel_down(): boolean {
+            return this.mouse_wheel_step > 0;
+        }
+    }
+
+    export function ord(letter: string): number {
+        return letter.length > 0 ? letter.charCodeAt(0) : Constants.vk_nokey;
+    }
+
+    export namespace Constants {
+        export const vk_nokey: number = -2;
+        export const vk_anykey: number = -1;
+        export const vk_left: number = 37;
+        export const vk_right: number = 39;
+        export const vk_up: number = 38;
+        export const vk_down: number = 40;
+        export const vk_enter: number = 13;
+        export const vk_escape: number = 27;
+        export const vk_space: number = 32;
+        export const vk_shift: number = 16;
+        export const vk_control: number = 17;
+        export const vk_alt: number = 18;
+        export const vk_backspace: number = 8;
+        export const vk_tab: number = 9;
+        export const vk_home: number = 36;
+        export const vk_end: number = 35;
+        export const vk_delete: number = 46;
+        export const vk_insert: number = 45;
+        export const vk_pageup: number = 33;
+        export const vk_pagedown: number = 34;
+        export const vk_pause: number = 19;
+        // vk_printscreen unsupported
+        export const vk_f1: number = 112;
+        export const vk_f2: number = 113;
+        export const vk_f3: number = 114;
+        export const vk_f4: number = 115;
+        export const vk_f5: number = 116;
+        export const vk_f6: number = 117;
+        export const vk_f7: number = 118;
+        export const vk_f8: number = 119;
+        export const vk_f9: number = 120;
+        export const vk_f10: number = 121;
+        export const vk_f11: number = 122;
+        export const vk_f12: number = 123;
+        export const vk_numpad0: number = 96;
+        export const vk_numpad1: number = 97;
+        export const vk_numpad2: number = 98;
+        export const vk_numpad3: number = 99;
+        export const vk_numpad4: number = 100;
+        export const vk_numpad5: number = 101;
+        export const vk_numpad6: number = 102;
+        export const vk_numpad7: number = 103;
+        export const vk_numpad8: number = 104;
+        export const vk_numpad9: number = 105;
+        export const vk_multiply: number = 106;
+        export const vk_divide: number = 111;
+        export const vk_add: number = 107;
+        export const vk_subtract: number = 109;
+        export const vk_decimal: number = 110;
+
+        export const mb_none: number = -2;
+        export const mb_any: number = -1;
+        export const mb_left: number = 0;
+        export const mb_middle: number = 1;
+        export const mb_right: number = 2;
     }
 }
