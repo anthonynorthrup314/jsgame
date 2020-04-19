@@ -1,6 +1,6 @@
 # JSGame
 
-Making a clone of YoYo Games's Game Maker using TypeScript and the HTML5 canvas.
+Making a clone of [https://www.yoyogames.com/gamemaker](YoYo Games's GameMaker) using TypeScript and the HTML5 canvas.
 
 Currently, it is configured to bounce a box and a ball around the screen. There is also a movable square in the upper-left that is controllable with WASD.
 
